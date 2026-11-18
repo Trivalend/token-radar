@@ -1,14 +1,88 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Token Radar: pre-token protocols ranked by implied value</title>
+<title>Token Radar — pre-token protocols ranked by implied value</title>
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
-<a class="skip" href="#board">Skip to the board</a>
-<main id="board" tabindex="-1" aria-busy="true"></main>
+<header class="topbar">
+  <div class="brand"><span class="dot"></span> Token Radar</div>
+  <div class="meta" id="meta">Snapshot 2026-11-14 · DefiLlama protocol index · radar-2 model</div>
+</header>
+<main>
+  <section class="hero">
+    <div>
+      <h1>40 watchlist protocols, ranked by implied value</h1>
+      <p class="lede">The watchlist is the floor: every protocol with at least $50M of TVL
+      and no token on record. The board ranks every protocol that passes the
+      same no-token test, floor aside: <span id="ledeRows">198</span> rows in
+      all, <span id="ledeEarly">158</span> of them below the floor. Implied
+      value is a model, not a promise.</p>
+    </div>
+    <aside class="stats" aria-label="Coverage">
+      <div><span>Watchlist covered</span><strong id="statWatch">40 / 40</strong></div>
+      <div><span>Pre-token rows scored</span><strong id="statRows">198</strong></div>
+      <div><span>Early rows below the floor</span><strong id="statEarly">158</strong></div>
+      <div><span>Live-token protocols set aside</span><strong id="statLive">32</strong></div>
+    </aside>
+  </section>
+
+  <section class="filters">
+    <label>Search
+      <input id="q" type="search" placeholder="Search name, category or chain">
+    </label>
+    <label>Category
+      <select id="cat"><option value="">All categories</option></select>
+    </label>
+    <label>Chain
+      <select id="chain"><option value="">All chains</option></select>
+    </label>
+    <label class="check">Watchlist only
+      <input id="wl" type="checkbox">
+    </label>
+    <div class="toggle">
+      <button id="tabPre" class="on" type="button">Pre-token</button>
+      <button id="tabLive" type="button">Live token</button>
+    </div>
+    <span class="shown" id="shown"></span>
+  </section>
+
+  <section class="card">
+    <p class="caption" id="caption">Pre-token protocols, strongest implied value first. Select a row for its model and farm plan.</p>
+    <table id="board">
+      <thead>
+        <tr>
+          <th data-sort="rank">Rank <span class="arrow">↓</span></th>
+          <th>Protocol</th>
+          <th class="num" data-sort="tvl">TVL</th>
+          <th class="num" data-sort="chg">7d</th>
+          <th class="num" data-sort="age">Age</th>
+          <th class="num" data-sort="value">Implied value <span class="arrow">↓</span></th>
+          <th>Token</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+
+  <p class="foot">Implied values come from the snapshot's own figures — TVL,
+  seven-day growth, time running with no token, and chain breadth. A protocol
+  records no token, never that it has none: the record is not proof.</p>
+</main>
+
+<aside class="drawer" id="drawer" hidden>
+  <div class="drawer-head"><span id="dRank"></span><button id="dClose" type="button">Close</button></div>
+  <h2 id="dName"></h2>
+  <p class="d-sub" id="dSub"></p>
+  <h3>Implied value</h3>
+  <dl class="model" id="dModel"></dl>
+  <p class="d-note" id="dNote"></p>
+  <h3>Farm plan</h3>
+  <ol class="plan" id="dPlan"></ol>
+</aside>
+
 <script src="../data.js"></script>
 <script src="app.js"></script>
 </body>

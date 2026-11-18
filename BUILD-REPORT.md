@@ -1,94 +1,67 @@
-# Token Radar — Build Report (token-radar-01)
+# Build Report — Token Radar (genuine rebuild)
 
-Entry directory: `~/workspace/makefun/token-radar-entry/` — built from the kit starter, model and
-dashboard rewritten. Deadline: 14 Dec 2026 17:00 WIB. Free entry, $1,325 USDC pot
-(1st $1,000, 2nd–5th $50, 6th–10th $25).
+Rebuilt from scratch on 18 Nov 2026 from the rebuild spec, the kit's
+RULES.txt and the kit's input/README.md only. No file from the original
+entry or the kit starter's code was read. Every source file below was
+written fresh in this session.
 
-## Model (radar-2)
+## Files
 
-One function scores every row, from the snapshot's own figures only. No protocol name is
-special-cased.
+- `main.ts` — entrypoint: reads the snapshot, writes board.json, data.js,
+  the dashboard, the screenshots and dossier.json. Deterministic output.
+- `lib/model.ts` — the radar-2 model, the board rule, the farm plans.
+- `vendor/makefun-board.ts` — the kit's dossier builder, copied as-is.
+- `dashboard/index.html`, `dashboard/app.css`, `dashboard/app.js` — the
+  dashboard. It renders the numbers board.json carries and never recomputes
+  the model, so the page and the board cannot drift apart.
+- `screenshots/1-board.jpg`, `2-detail.jpg`, `3-filtered.jpg` — the three
+  existing dashboard screenshots (1440×900 JPEG, unchanged).
+- `README.md`, `LICENSE` (MIT), `BUILD-REPORT.md` (this file).
 
-```
-implied = round( tvl_usd x tier(tvl)
-               x (1 + 0.55 x tanh(clamp(change_7d, -50, 150) / 45))
-               x (0.55 + 0.45 x age_days / (age_days + 365))
-               x (1 + 0.04 x min(chains - 1, 5)) )
-tier(tvl): 0.22 below $100M, 0.25 to $1B, 0.28 above $1B
-```
+## Verification (18 Nov 2026)
 
-- **Tier:** a launch multiple anchored to TVL; a larger, proven protocol commands a higher multiple.
-- **Growth:** smooth, saturating tanh — a +150% week is worth 1.55x, a -50% week 0.56x, never more
-  (the snapshot's 7-day changes run from -72.7% to +4,448%, so saturation matters).
-- **Maturity:** an S-curve on days since first listed — a year of running with no token earns most
-  of the credit, then it flattens. Unknown age uses 365 days.
-- **Breadth:** a small secondary signal for protocols live on more chains, capped at +20%.
+- Two runs of the entrypoint produce byte-identical output
+  (`diff -r out out2` clean).
+- Gate, checked with a fresh script (`~/workspace/makefun/scratch/verify_gate.mjs`):
+  9/9 pass — dashboard_files (3 files, 20,486 B, no network references),
+  board_file (198 rows, 417,103 B), sorted_by_value (ranks 1..198 exact,
+  implied values non-increasing, all distinct), coverage (40/40 watchlist),
+  farm_steps (8/row, 140–215 chars), screenshots (3 JPEG 1440×900),
+  dossier_matches (byte-identical on regeneration), dossier 1,288,333 B
+  (≤1.5 MiB), dashboard source 20,486 B (≤64 KB).
+- Playwright (headless Chromium, `file://`): the page renders 198 rows with
+  no console, page or request errors; the detail drawer's model breakdown
+  and farm plan match board.json exactly for sampled ranks 1 (Steakhouse
+  Financial), 50 (Loopscale Lending), 100 (NUVA) and 178 (Pangolins);
+  Category = Risk Curators shows 34 rows, search "sentora" shows 1 row,
+  Watchlist only shows 40 rows, the Live token view shows 32 rows, and
+  sorting by TVL descending puts Sentora Curator first.
 
-Board rule: every protocol that passes the watchlist's own no-token test, the floor aside —
-pre-token, not a wrapped/staked/bridged product, not an exchange, not a versioned pool. The
-40 above the $50M floor are the watchlist; the 138 below it are the early radar. Live-token
-protocols (32, by market cap) are set aside in a separate Live token view, never mixed in.
-The page says "records no token", never "has no token".
+## Numbers
 
-## Board
+- Board: 198 rows — 40 watchlist + 158 early rows below the floor.
+- Top 5 implied values: Steakhouse Financial $737.6M, Sentora Curator
+  $700.5M, Gauntlet $464.0M, Veda $394.8M, USDD $256.4M. Bottom: Monarq
+  $549,754. Implied values range $549,754–$737,647,334, all distinct.
+- Live-token view: 32 rows, largest by market cap (first: Rain, $2.65B).
+- Farm steps: 8 per row, 140–215 characters each, each carrying
+  "Cost: ..." and "Time: ...".
 
-- **178 rows** (40 watchlist + 138 early), ranks 1..178, all implied values distinct.
-- Top 5: Steakhouse Financial $737.6M · Gauntlet $464.0M · Veda $394.8M · USDD $256.4M ·
-  Upshift $139.6M. Bottom: Monarq $0.55M. Implied range $549,754 – $737,647,334.
-- Farm plans: **8 steps per row**, 124–297 chars trimmed each, derived from the protocol's
-  category (two actions), TVL (capital), chains (cross-chain step), age (hold days); every step
-  carries a cost in USD/gas and a time.
+## Deviations from the spec
 
-## Gate — all 7 rows PASS (verified with /tmp/shot/verify.mjs, 12/12 checks)
-
-| Gate row | Result | Numbers |
-|---|---|---|
-| dashboard_files | PASS | 3 files, 36,139 bytes; index.html + app.css + app.js; no http(s) anywhere |
-| board_file | PASS | 178 rows, 340,256 bytes; all slugs in snapshot, no dups, all values valid |
-| sorted_by_value | PASS | ranks exactly 1..178, implied non-increasing, 178 distinct values |
-| coverage | PASS | all 40 watchlist slugs present |
-| farm_steps | PASS | 8 steps/row, 124–297 chars trimmed, 0 out of range |
-| screenshots | PASS | 3 JPEGs, 1440x900 each (see below) |
-| dossier_matches | PASS | regenerated dossier byte-identical to out/dossier.json (1,303,443 bytes) |
-
-Extra checks, all PASS: dashboard source 36,139 bytes (< 64 KB cap); implied values
-re-derived independently from the snapshot for all 178 rows (0 mismatches); second run is
-byte-identical (board + dossier); the page's detail view farm steps match board.json for
-4 sampled rows (ranks 1, 50, 100, 178); Live token tab renders 32 rows, no page errors.
-
-## Screenshots (screenshots/, captured with Playwright Chromium at 1440x900)
-
-| File | View | Size |
-|---|---|---|
-| 1-board.jpg | Board, default view | 306,923 B |
-| 2-detail.jpg | Detail view, rank 1 (Steakhouse Financial) | 332,504 B |
-| 3-filtered.jpg | Filtered view, category = Risk Curators (33 rows) | 309,998 B |
-
-## Bugs found and fixed during the build
-
-1. The starter's `capitalFor` differed between `lib/model.ts` (5e9/1e9/1e8 tiers) and
-   `dashboard/app.js` (1e9/1e8/5e7 tiers), so the page's farm plan disagreed with board.json
-   for protocols in the $50M–$100M and $1B–$5B bands. Fixed `app.js` to match `model.ts`
-   exactly; verified the page's steps now match board.json.
-2. Playwright `page.goto` with only a hash change does not reload the page, so the first
-   screenshot pass produced three identical images. The capture script now navigates to
-   `about:blank` first.
-
-## How to run
-
-```sh
-mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts --input ../token-radar-01-kit/input/snapshot.json
-```
-
-Node v24.22.1. No network, no install. Screenshots were captured with Playwright Chromium
-(headless shell 159.0.8154.6, installed via `npx playwright-core install chromium` in
-/tmp/shot); the capture script is /tmp/shot/shots.mjs, the verifier /tmp/shot/verify.mjs.
-
-## Left for submission (not done here, by design)
-
-- Nothing is submitted and no GitHub repo was created by this build.
-- Next steps for the parent: push this directory to the public repo Trivalend/token-radar
-  (after the Muse GitHub App is installed on it), bundle the agent transcripts, run
-  `node cli/makefun.mjs check`, then submit before 14 Dec 2026 17:00 WIB.
-- Note: the dossier's cover image is 1-board.jpg, which will show publicly on make.fun's
-  Feed once the entry is judged.
+1. **Board has 198 rows, not 178.** A faithful implementation of the
+   spec's stated board rule (the no-token test from RULES.txt/README, floor
+   aside, snapshot fields only) yields 198 rows. The original entry's 178
+   implies an additional filter that is not derivable from the sealed
+   snapshot alone; no single-feature rule tested explains the 20-row gap
+   (62 of the 198 rows have a parentProtocol in the live DefiLlama API, not
+   20). This rebuild follows the spec's stated rule.
+2. **Rank 2 is Sentora Curator ($700.5M), not Gauntlet.** Sentora Curator
+   (TVL $2.76B, Risk Curators, 4 chains, listed 2025-10-03, +2.37% 7d) is
+   the extra row the original excluded; the same reason accounts for the
+   Risk Curators filter showing 34 rows instead of 33.
+3. **The existing screenshots show the 178-row board** (Gauntlet at rank 2,
+   Risk Curators 33 rows). The rebuilt dashboard disagrees with them: it
+   shows Sentora Curator at rank 2 and 34 Risk Curators rows. The
+   screenshots were kept unchanged as instructed; re-capturing them from
+   the rebuilt dashboard is a decision for the parent.
